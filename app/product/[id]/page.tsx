@@ -17,7 +17,7 @@ interface Product {
   batchNumber?: string
   manufacturingDate?: string
   expiryDate: string
-  image: string
+  images: [string]
   sellerId: { name: string }
   rating: number
   quantity: number
@@ -141,7 +141,7 @@ export default function ProductDetail() {
           <div className="flex items-center justify-center">
             <div className="w-full aspect-square bg-muted rounded-lg overflow-hidden">
               <img
-                src={product.image || "/placeholder.svg?height=500&width=500&query=household product"}
+                src={product.images?.[0] || "/placeholder.svg?height=500&width=500&query=household product"}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
@@ -171,7 +171,7 @@ export default function ProductDetail() {
               )}
             </div>
 
-            <p className="text-base text-muted-foreground mb-6">By {product.sellerId.name}</p>
+            <p className="text-base text-muted-foreground mb-6">By {product.sellerId?.name}</p>
 
             {/* Freshness Meter */}
             <div className="mb-6 p-4 md:p-6 bg-card border border-border rounded-lg">

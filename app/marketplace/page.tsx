@@ -14,7 +14,7 @@ interface Product {
   finalPrice: number
   discountPercentage: number
   expiryDate: string
-  image: string
+  images : [string]
   sellerId: { name: string }
   rating: number
   quantity: number
@@ -257,13 +257,14 @@ export default function Marketplace() {
                     const daysLeft = daysUntilExpiry(product.expiryDate)
 
                     return (
-                      <div
-                        key={product._id}
+                       <Link
+                      key={product._id}
+                      href={`/product/${product._id}`}
                         className="bg-card rounded-lg border border-border hover:shadow-lg hover:border-primary/50 transition group overflow-hidden flex flex-col"
                       >
                         <div className="relative h-40 md:h-48 bg-muted overflow-hidden group-hover:scale-105 transition">
                           <img
-                            src={product.image || "/placeholder.svg?height=200&width=200&query=household product"}
+                            src={product.images?.[0] || "/placeholder.svg?height=200&width=200&query=household product"}
                             alt={product.name}
                             className="w-full h-full object-cover"
                           />
@@ -288,12 +289,11 @@ export default function Marketplace() {
                         </div>
 
                         <div className="p-4 flex-1 flex flex-col">
-                          <Link href={`/product/${product._id}`} className="flex-1">
                             <h3 className="font-bold text-foreground group-hover:text-primary transition line-clamp-2 mb-1">
                               {product.name}
                             </h3>
                             <p className="text-xs text-muted-foreground mb-3">by {product.sellerId?.name}</p>
-                          </Link>
+                          
 
                           {/* Pricing */}
                           <div className="mb-3">
@@ -318,7 +318,7 @@ export default function Marketplace() {
                             <ShoppingCart size={16} /> Add to Cart
                           </button>
                         </div>
-                      </div>
+                      </Link>
                     )
                   })}
                 </div>
