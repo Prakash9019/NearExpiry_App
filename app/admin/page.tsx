@@ -28,46 +28,65 @@ export default function AdminPanel() {
   }, [])
 
   const fetchPendingVerifications = async () => {
-    try {
-      const response = await fetch("/api/admin/verify-seller")
-      if (!response.ok) {
-        throw new Error("Failed to fetch verifications")
-      }
-      const data = await response.json()
-      console.log("[v0] Fetched sellers:", data)
-      setPendingVerifications(Array.isArray(data) ? data : [])
-      setError("")
-    } catch (err: any) {
-      console.error("[v0] Verification fetch error:", err)
-      setError(err.message || "Failed to load verifications")
-      setPendingVerifications([])
-    } finally {
-      setLoading(false)
+  setLoading(true)
+  try {
+    const response = await fetch("/api/admin/verify-seller?status=pending", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    })
+
+    if (!response.ok) {
+      // attempt to read api error message
+      const errBody = await response.json().catch(() => ({ error: "Unknown error" }))
+      console.error("[v0] fetch verifications bad response:", response.status, errBody)
+      throw new Error(errBody?.error || "Failed to fetch verifications")
     }
+
+    const data = await response.json()
+    console.log("[v0] Fetched sellers:", data)
+    setPendingVerifications(Array.isArray(data) ? data : [])
+    setError("")
+  } catch (err: any) {
+    console.error("[v0] Verification fetch error:", err)
+    setError(err.message || "Failed to load verifications")
+    setPendingVerifications([])
+  } finally {
+    setLoading(false)
   }
+}
 
-  const handleVerifySeller = async (sellerId: string, approved: boolean) => {
-    try {
-      const response = await fetch("/api/admin/verify-seller", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sellerId,
-          approved,
-          rejectionReason: approved ? null : "Documentation incomplete",
-        }),
-      })
+const handleVerifySeller = async (sellerId: string, approved: boolean) => {
+  try {
+    // optimistic update: mark it removed from pending list
+    setPendingVerifications(prev => prev.filter(s => s._id !== sellerId))
+    const response = await fetch("/api/admin/verify-seller", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sellerId,
+        approved,
+        rejectionReason: approved ? null : "Documentation incomplete",
+      }),
+    })
 
-      if (!response.ok) {
-        throw new Error("Verification failed")
-      }
-
-      fetchPendingVerifications()
-    } catch (error) {
-      console.error("[v0] Verification error:", error)
-      setError("Failed to verify seller")
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: "Verification failed" }))
+      throw new Error(err?.error || "Verification failed")
     }
+
+    // optionally update local item with returned verification if you want to show history
+    const result = await response.json()
+    console.log("[v0] verify result:", result)
+    setError("")
+    // no need to re-fetch everything here; it's already removed optimistically
+  } catch (error: any) {
+    console.error("[v0] Verification error:", error)
+    setError(error.message || "Failed to verify seller")
+    // re-fetch to recover state
+    fetchPendingVerifications()
   }
+}
+
 
   if (!user) {
     return (

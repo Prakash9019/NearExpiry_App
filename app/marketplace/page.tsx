@@ -94,7 +94,6 @@ export default function Marketplace() {
       : [...cart, { ...product, quantity: 1 }]
     setCart(updatedCart)
     localStorage.setItem("cart", JSON.stringify(updatedCart))
-    alert("Added to cart!")
   }
 
   return (
@@ -293,7 +292,7 @@ export default function Marketplace() {
                             <h3 className="font-bold text-foreground group-hover:text-primary transition line-clamp-2 mb-1">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-muted-foreground mb-3">by {product.sellerId.name}</p>
+                            <p className="text-xs text-muted-foreground mb-3">by {product.sellerId?.name}</p>
                           </Link>
 
                           {/* Pricing */}
